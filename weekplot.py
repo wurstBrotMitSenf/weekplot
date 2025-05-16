@@ -3,10 +3,22 @@ import sys
 import yaml
 from math import ceil
 import matplotlib.pyplot as plt
-from namedlist import namedlist
+from dataclasses import dataclass
+from typing import List
+
+
 
 DAYS = ['Monday','Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-Event = namedlist('Event', 'name, days, startH, startM, endH, endM, color')
+
+@dataclass
+class Event:
+    name: str
+    days: List[str]
+    startH: int
+    startM: int
+    endH: int
+    endM: int
+    color: str
 
 def getDay(prefix):
     for d in DAYS:
@@ -73,13 +85,15 @@ def plotEvent(e):
         d = DAYS.index(day) + 0.52
         start = float(e.startH) + float(e.startM) / 60
         end = float(e.endH) + float(e.endM) / 60
-        plt.fill_between([d, d + 0.96], [start, start], [end, end], color=e.color)
-        plt.text(d + 0.02, start + 0.02, '{0}:{1:0>2}'.format(e.startH, e.startM), va='top', fontsize=8)
-        plt.text(d + 0.48, (start + end) * 0.502, e.name, ha='center', va='center', fontsize=10)
+        ax.fill_between([d, d + 0.96], [start, start], [end, end], color=e.color)
+        ax.text(d + 0.02, start + 0.02, '{0}:{1:0>2}'.format(e.startH, e.startM), va='top', fontsize=8)
+        ax.text(d + 0.48, (start + end) * 0.502, e.name, ha='center', va='center', fontsize=10)
 
 if __name__ == '__main__':
     ext = sys.argv[1].split('.')[-1]
     fig = plt.figure(figsize=(18, 9))
+    ax=fig.add_subplot(1, 1, 1)
+
     try:
         events, earliest, latest = parseTxt(sys.argv[1]) if ext == 'txt' else parseYml(sys.argv[1])
         for e in events:
@@ -88,7 +102,6 @@ if __name__ == '__main__':
         print("ERROR:", str(e), file=sys.stderr)
         sys.exit(1)
     plt.title('Weekly Schedule', y=1, fontsize=14)
-    ax=fig.add_subplot(1, 1, 1)
     ax.set_xlim(0.5, len(DAYS) + 0.5)
     ax.set_xticks(range(1, len(DAYS) + 1))
     ax.set_xticklabels(DAYS)
